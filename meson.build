@@ -62,12 +62,12 @@ userbins_mk = _userbins.startswith('/') ? _userbins : src_root / _userbins
 _soleinc = get_option('cactsoleinc')
 cactsoleinc = _soleinc.startswith('/') ? _soleinc : src_root / _soleinc
 
-cactpkg_mk = siblings / 'CactPkg-x86_32'
-cactinst_mk = siblings / 'Cact-install-x86_32'
-xfbdev_bin = siblings / 'CactXfbdev-x86_32' / 'build-meson' / 'xfbdev'
+cactpkg_mk = siblings / 'CactPkg-x86_64'
+cactinst_mk = siblings / 'Cact-install-x86_64'
+xfbdev_bin = siblings / 'CactXfbdev-x86_64' / 'build-meson' / 'xfbdev'
 # The console font is generated, not vendored: CactKernel owns the generator
 # (and the 8x8 glyph table it draws from).
-font_gen = siblings / 'CactKernel-x86_32' / 'tools' / 'gen_consolefont.py'
+font_gen = siblings / 'CactKernel-x86_64' / 'tools' / 'gen_consolefont.py'
 
 libc_so_src = cactlib_dir / 'build-meson' / 'clibc.so'
 ld_so_src = cactlib_dir / 'build-meson' / 'ld.so'
@@ -92,7 +92,7 @@ zstd = find_program('zstd')
 
 _stage_tpl = ('d="@0@"; ' +
               'if [ ! -f "$d/build-meson/build.ninja" ]; then ' +
-              'meson setup "$d/build-meson" "$d" --cross-file "$d/cross/i686-cact-clang.ini" @1@; ' +
+              'meson setup "$d/build-meson" "$d" --cross-file "$d/cross/x86_64-cact-clang.ini" @1@; ' +
               'else meson configure "$d/build-meson" @1@ > /dev/null; fi; ' +
               ninja.full_path() + ' -C "$d/build-meson" @2@; ')
 
@@ -108,7 +108,7 @@ _daemon_names = ['logd', 'devd', 'netd', 'powerd', 'quirkd', 'resolved', 'seatd'
 
 _script_daemons = ''
 foreach d : _daemon_names
-  _dir = siblings / ('Cact-' + d + '-x86_32')
+  _dir = siblings / ('Cact-' + d + '-x86_64')
   _script_daemons += (
     'if [ -f "' + _dir + '/meson.build" ]; then ' +
     _stage_tpl.format(_dir, _cactlib_opt + ' ' + _sbin_opt, 'stage') +
@@ -133,7 +133,7 @@ endif
 # already built) drops the media the installer deploys into lib/cact-install —
 # boot/kernel.bin plus the GRUB stage files.  Both land in cctkfs.img, so the
 # media has to be staged before the pack step below.  The whole-workspace build
-# (CactOS-x86_32) runs the same three targets; running them again from here is
+# (CactOS-x86_64) runs the same three targets; running them again from here is
 # what makes this repository build a complete image on its own.
 _script_cactinst = ''
 if fs.exists(cactinst_mk / 'meson.build')
@@ -256,7 +256,7 @@ _script_pack = (
 # the offline repository (versioned with the CactOS release) so cactpkg can list
 # and install the base system too.  Must run after _script_bin, once all of the
 # userland is staged; writes into the repo dir _script_cactpkg already filled.
-_cactos_version = '2.0.0'
+_cactos_version = '3.0.0'
 _cpkg_tool = cactpkg_mk / 'tools' / 'cpkg.py'
 _script_sysrepo = (
   'if [ -f "' + _cpkg_tool + '" ] && [ -d "' + lib_dir + '/cactpkg/repo" ]; then ' +

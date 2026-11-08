@@ -12,7 +12,7 @@
 <p align="center">
   Staging tree for <strong>out-of-tree PCI drivers</strong> (<strong><code>*.cctk</code></strong>) and <strong>early userspace</strong> ELFs, packed into one <strong><code>cctkfs.img</code></strong> archive.<br>
   GRUB loads it as a <strong>Multiboot2</strong> <strong><code>module2</code></strong>; the <strong>Cact</strong> kernel copies it into RAM <strong>before paging</strong> and overlays <strong><code>/lib</code></strong>, <strong><code>/bin</code></strong>, and <strong><code>/sbin</code></strong> on top of disk-backed VFS.<br>
-  <strong>2.0.0:</strong> all `.cctk` modules are signed with an <strong>ECDSA P-256</strong> key pair. Each module carries a fixed trailer — magic `CMOD`, a 4-byte LE vermagic, then a 64-byte r‖s signature over `ELF || magic || vermagic`; the kernel verifies it with the embedded public key before loading (`mod_tag_verify()` in `Cact/kernel/elf/mod_tag.c`, Rust crate `cact_crypto`). The build host signs with `tools/modsign.py` via `tools/cact_sign.py`.
+  <strong>3.0.0:</strong> all `.cctk` modules are signed with an <strong>ECDSA P-256</strong> key pair. Each module carries a fixed trailer — magic `CMOD`, a 4-byte LE vermagic, then a 64-byte r‖s signature over `ELF || magic || vermagic`; the kernel verifies it with the embedded public key before loading (`mod_tag_verify()` in `Cact/kernel/elf/mod_tag.c`, Rust crate `cact_crypto`). The build host signs with `tools/modsign.py` via `tools/cact_sign.py`.
 </p>
 
 ---
@@ -35,13 +35,13 @@
 
 | Piece | Role |
 |-------|------|
-| **[CactKernel-x86_32](https://github.com/QwaYer/CactKernel-x86_32)** | Parses the **`cctkfs`** module, stages **`cctkfs_stage[]`**, serves **GDD** / **pci_load_module**, **binfs** / **sbinfs** / **libfs** / **usrfs** overlays |
+| **[CactKernel-x86_64](https://github.com/QwaYer/CactKernel-x86_64)** | Parses the **`cctkfs`** module, stages **`cctkfs_stage[]`**, serves **GDD** / **pci_load_module**, **binfs** / **sbinfs** / **libfs** / **usrfs** overlays |
 | **`*-for-Cact` driver repos** | Each **`ninja -C build-meson stage`** drops **`*.cctk`** into **`lib/`** here |
-| **[CactLib-x86_32](https://github.com/QwaYer/CactLibc-x86_32)** | Builds **`clibc.so`** consumed by staged ELFs |
-| **[Cgoct-x86_32](https://github.com/QwaYer/Cgoct-x86_32)** | **`/usr/bin/init`** — userspace supervisor |
-| **[Cactsole-x86_32](https://github.com/QwaYer/Cactsole-x86_32)** | **`/usr/bin/cactsole`** and **`/usr/bin/cactsole-rescue`** (same binary, two names) |
-| **[CactUserBins-x86_32](https://github.com/QwaYer/CactUserBins-x86_32)** | **`ninja -C build-meson stage`** fills **`lib/bin/`** and **`lib/sbin/`** |
-| **[CactOS-x86_32](https://github.com/QwaYer/CactOS-x86_32)** | **Workspace integrator** — drives **`ninja`** across libc, shells, userbins, drivers, this packer, kernel, **CactBridge** |
+| **[CactLib-x86_64](https://github.com/QwaYer/CactLibc-x86_64)** | Builds **`clibc.so`** consumed by staged ELFs |
+| **[Cgoct-x86_64](https://github.com/QwaYer/Cgoct-x86_64)** | **`/usr/bin/init`** — userspace supervisor |
+| **[Cactsole-x86_64](https://github.com/QwaYer/Cactsole-x86_64)** | **`/usr/bin/cactsole`** and **`/usr/bin/cactsole-rescue`** (same binary, two names) |
+| **[CactUserBins-x86_64](https://github.com/QwaYer/CactUserBins-x86_64)** | **`ninja -C build-meson stage`** fills **`lib/bin/`** and **`lib/sbin/`** |
+| **[CactOS-x86_64](https://github.com/QwaYer/CactOS-x86_64)** | **Workspace integrator** — drives **`ninja`** across libc, shells, userbins, drivers, this packer, kernel, **CactBridge** |
 
 ---
 
@@ -94,7 +94,7 @@ on the VFS. The tmpfs copy is released once the configured daemons are up
 
 **Recommended — full workspace**
 
-From the **parent** of all sibling trees, run **`ninja -C CactOS-x86_32/build-meson stage`** (or **`… iso`**) — **[CactOS-x86_32](https://github.com/QwaYer/CactOS-x86_32)** configures this project with **`-Dcactlib_dir`**, **`-Dcactsole_bin`**, **`-Dcgoct_bin`**, **`-Duserbins_mk`**, **`-Dcactsoleinc`** and runs its **`stage`** target, which repacks **`cctkfs.img`**.
+From the **parent** of all sibling trees, run **`ninja -C CactOS-x86_64/build-meson stage`** (or **`… iso`**) — **[CactOS-x86_64](https://github.com/QwaYer/CactOS-x86_64)** configures this project with **`-Dcactlib_dir`**, **`-Dcactsole_bin`**, **`-Dcgoct_bin`**, **`-Duserbins_mk`**, **`-Dcactsoleinc`** and runs its **`stage`** target, which repacks **`cctkfs.img`**.
 
 **Standalone — this repository only**
 
@@ -111,11 +111,11 @@ Override any path with a Meson option (see table below).
 
 | Option | Meaning |
 |----------|---------|
-| **`-Dcactlib_dir`** | Root of **CactLib-x86_32** (must already contain **`build-meson/clibc.so`**) |
+| **`-Dcactlib_dir`** | Root of **CactLib-x86_64** (must already contain **`build-meson/clibc.so`**) |
 | **`-Dcactsole_bin`** | Path to built **`cactsole`** |
 | **`-Dcgoct_bin`** | Path to built **`cgoct`** |
-| **`-Duserbins_mk`** | Directory of **CactUserBins-x86_32** (its **`stage`** target is invoked) |
-| **`-Dcactsoleinc`** | **`include/`** from **Cactsole-x86_32** |
+| **`-Duserbins_mk`** | Directory of **CactUserBins-x86_64** (its **`stage`** target is invoked) |
+| **`-Dcactsoleinc`** | **`include/`** from **Cactsole-x86_64** |
 
 **Prerequisites**
 
@@ -127,10 +127,10 @@ Override any path with a Meson option (see table below).
 **Driver install** (each driver's own **`stage`** target copies into **`lib/`**):
 
 ```sh
-ninja -C ../AHCI-for-Cact-x86_32/build-meson stage
-ninja -C ../NVMe-for-Cact-x86_32/build-meson stage
-ninja -C ../Virtio-net-for-Cact-x86_32/build-meson stage
-ninja -C ../Yukon-for-Cact-x86_32/build-meson stage
+ninja -C ../AHCI-for-Cact-x86_64/build-meson stage
+ninja -C ../NVMe-for-Cact-x86_64/build-meson stage
+ninja -C ../Virtio-net-for-Cact-x86_64/build-meson stage
+ninja -C ../Yukon-for-Cact-x86_64/build-meson stage
 ```
 
 **Pack the image**
@@ -181,13 +181,13 @@ LocalRepoCactOS/
 
 ## ➕ Adding a new PCI driver
 
-1. Create a sibling repo **`<Name>-for-Cact-x86_32`** whose **`meson.build`**:
+1. Create a sibling repo **`<Name>-for-Cact-x86_64`** whose **`meson.build`**:
    - compiles **`<name>_mod.c`** with **`-ffreestanding -fno-pie -m32 -mno-mmx -mno-sse -mno-sse2`** (ring-0 code must not use SSE),
    - emits **`<name>.cctk`** (relocatable object),
    - exposes a **`stage`** run_target copying it into **`-Dlocal_repo=<…>/lib/`**.
 2. (Optional) mirror sources under **`src/<Name>-for-Cact/`**.
-3. Teach **GDD** in **`CactKernel-x86_32/.../pci_gdd.c`** to recognise the PCI class tuple.
-4. **`ninja -C <Name>-for-Cact-x86_32/build-meson stage`**, then **`ninja -C LocalRepoCactOS-x86_32/build-meson stage`** with the integrator options — or just run **`ninja -C CactOS-x86_32/build-meson drivers`**.
+3. Teach **GDD** in **`CactKernel-x86_64/.../pci_gdd.c`** to recognise the PCI class tuple.
+4. **`ninja -C <Name>-for-Cact-x86_64/build-meson stage`**, then **`ninja -C LocalRepoCactOS-x86_64/build-meson stage`** with the integrator options — or just run **`ninja -C CactOS-x86_64/build-meson drivers`**.
 
 ---
 

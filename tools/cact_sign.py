@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """cact_sign.py — Sign a .cctk module with an ECDSA P-256 signature.
 
-Appends the module trailer (see CactKernel-x86_32/tools/modsign.py):
+Appends the module trailer (see CactKernel-x86_64/tools/modsign.py):
 
     [ ELF ][ magic:4 = "CMOD" ][ vermagic:4 LE ][ signature:64 ]
 
@@ -21,7 +21,7 @@ from pathlib import Path
 def _kernel_root() -> str:
     """Resolve the sibling kernel repo (where the signing tools live)."""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.normpath(os.path.join(script_dir, "..", "..", "CactKernel-x86_32"))
+    return os.path.normpath(os.path.join(script_dir, "..", "..", "CactKernel-x86_64"))
 
 
 sys.path.insert(0, os.path.join(_kernel_root(), "tools"))
