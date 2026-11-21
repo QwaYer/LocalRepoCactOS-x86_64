@@ -82,11 +82,11 @@ archive's zstd level is low for the same reason. `tar` stores the mirror's
 symlinks (aliases) as symlink members, which **`firmextr` skips** — only the
 canonical files are reachable through the VFS.
 
-At boot **cgoct** copies the archive to **`/tmp/localrepo.tar.zst`** and
-**`firmextr`** streams members out of it (`firmextr usr/lib/firmware/rt2870.bin`)
-without unpacking the rest; `request_firmware()` then finds the extracted blob
-on the VFS. The tmpfs copy is released once the configured daemons are up
-(`localrepo_free` in `/etc/cgoct.conf`).
+The archive stays on the boot medium: the kernel serves the GRUB module in
+place as **`/dev/localrepo`**, and **`firmextr`** streams members out of it
+(`firmextr usr/lib/firmware/rt2870.bin`) without unpacking the rest — the
+~500 MiB archive is never copied into RAM. `request_firmware()` then finds the
+extracted blob on the VFS.
 
 ---
 

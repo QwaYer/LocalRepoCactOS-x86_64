@@ -77,10 +77,10 @@ packer = src_root / 'tools' / 'pack_cctkfs.py'
 signer = src_root / 'tools' / 'cact_sign.py'
 
 # The "store" is what too big and too rare to sit in the initfs image: the
-# firmware mirror, packed into localrepo.tar.zst.  The boot flow copies the
-# archive to /tmp and firmextr streams members out of it on demand.  Everything
-# else the image needs (userland, drivers, the cactpkg repository and the
-# installer media) is packed straight into cctkfs.img.
+# firmware mirror, packed into localrepo.tar.zst.  The kernel serves the archive
+# in place as /dev/localrepo and firmextr streams members out of it on demand.
+# Everything else the image needs (userland, drivers, the cactpkg repository and
+# the installer media) is packed straight into cctkfs.img.
 store_dir = src_root / 'store'
 store_lib = store_dir / 'usr' / 'lib'
 out_tar = src_root / 'localrepo.tar.zst'
