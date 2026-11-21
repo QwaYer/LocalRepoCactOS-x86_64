@@ -179,9 +179,11 @@ endif
 _lib_repo = lib_dir / 'cactpkg' / 'repo'
 _script_libpkgs = 'mkdir -p "' + _lib_repo + '"; '
 foreach _m : [_zlib_mk, _drm_mk, _ffi_mk, _wl_mk]
-  _script_libpkgs += 'if [ -f "' + _m + '/meson.build" ]; then ' +
+  _script_libpkgs += (
+    'if [ -f "' + _m + '/meson.build" ]; then ' +
     'ninja -C "' + _m + '/build-meson" pkg >/dev/null; ' +
     'cp -f "' + _m + '/repo"/*.cpkg "' + _lib_repo + '/" 2>/dev/null || true; fi; '
+  )
 endforeach
 
 # ------------------------------------------------------------------------------
