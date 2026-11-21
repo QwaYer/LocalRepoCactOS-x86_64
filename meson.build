@@ -142,6 +142,15 @@ if fs.exists(cactinst_mk / 'meson.build')
     'stage grub-bundle stage-media')
 endif
 
+# zlib, the first of the graphics-stack library ports: its stage target drops
+# libz.so into lib/ and its headers into lib/include/, which pack_cctkfs.py maps
+# to /usr/lib and /usr/include.
+_zlib_mk = siblings / 'CactZlib-x86_64'
+_script_zlib = ''
+if fs.exists(_zlib_mk / 'meson.build')
+  _script_zlib = _stage_tpl.format(_zlib_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
+endif
+
 # ------------------------------------------------------------------------------
 # Staging helpers
 # ------------------------------------------------------------------------------
@@ -265,7 +274,7 @@ _script_sysrepo = (
 )
 
 run_target('libs',
-  command: [bash, '-c', 'set -e; ' + _script_libs])
+  command: [bash, '-c', 'set -e; ' + _script_libs + _script_zlib])
 
 run_target('bin',
   command: [bash, '-c', 'set -e; ' + _script_bin])
@@ -288,7 +297,7 @@ run_target('userbins',
 run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
-            _script_libs + _script_bin + _script_font + _script_xfbdev +
+            _script_libs + _script_zlib + _script_bin + _script_font + _script_xfbdev +
             _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
