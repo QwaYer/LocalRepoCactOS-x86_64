@@ -172,6 +172,18 @@ if fs.exists(_wl_mk / 'meson.build')
   _script_wl = _stage_tpl.format(_wl_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
 endif
 
+# Each library port also produces a .cpkg; collect them into the image's package
+# repository so the libraries ship as packages and not only as staged files.  The
+# repo dir is filled by CactPkg's own stage and indexed at the end by the sysrepo
+# step, so this only has to drop the files in before that runs.
+_lib_repo = lib_dir / 'cactpkg' / 'repo'
+_script_libpkgs = 'mkdir -p "' + _lib_repo + '"; '
+foreach _m : [_zlib_mk, _drm_mk, _ffi_mk, _wl_mk]
+  _script_libpkgs += 'if [ -f "' + _m + '/meson.build" ]; then ' +
+    'ninja -C "' + _m + '/build-meson" pkg >/dev/null; ' +
+    'cp -f "' + _m + '/repo"/*.cpkg "' + _lib_repo + '/" 2>/dev/null || true; fi; '
+endforeach
+
 # ------------------------------------------------------------------------------
 # Staging helpers
 # ------------------------------------------------------------------------------
@@ -319,7 +331,7 @@ run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
             _script_libs + _script_zlib + _script_drm + _script_ffi + _script_wl + _script_bin + _script_font + _script_xfbdev +
-            _script_sysrepo + _script_ca + _script_fw + _script_store +
+            _script_libpkgs + _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
 # Build localrepo.tar.zst from the store.  Run after `stage` (it uses whatever
