@@ -157,6 +157,13 @@ if fs.exists(_drm_mk / 'meson.build')
   _script_drm = _stage_tpl.format(_drm_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
 endif
 
+# libffi — what Wayland's connection.c calls to invoke event closures.
+_ffi_mk = siblings / 'CactFFI-x86_64'
+_script_ffi = ''
+if fs.exists(_ffi_mk / 'meson.build')
+  _script_ffi = _stage_tpl.format(_ffi_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
+endif
+
 # ------------------------------------------------------------------------------
 # Staging helpers
 # ------------------------------------------------------------------------------
@@ -280,7 +287,7 @@ _script_sysrepo = (
 )
 
 run_target('libs',
-  command: [bash, '-c', 'set -e; ' + _script_libs + _script_zlib + _script_drm])
+  command: [bash, '-c', 'set -e; ' + _script_libs + _script_zlib + _script_drm + _script_ffi])
 
 run_target('bin',
   command: [bash, '-c', 'set -e; ' + _script_bin])
@@ -303,7 +310,7 @@ run_target('userbins',
 run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
-            _script_libs + _script_zlib + _script_drm + _script_bin + _script_font + _script_xfbdev +
+            _script_libs + _script_zlib + _script_drm + _script_ffi + _script_bin + _script_font + _script_xfbdev +
             _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
