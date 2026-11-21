@@ -164,6 +164,14 @@ if fs.exists(_ffi_mk / 'meson.build')
   _script_ffi = _stage_tpl.format(_ffi_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
 endif
 
+# Wayland protocol libraries.  Built after libffi: their build reads the ffi
+# headers and libffi.so that CactFFI's stage left in lib/ and lib/include.
+_wl_mk = siblings / 'CactWayland-x86_64'
+_script_wl = ''
+if fs.exists(_wl_mk / 'meson.build')
+  _script_wl = _stage_tpl.format(_wl_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
+endif
+
 # ------------------------------------------------------------------------------
 # Staging helpers
 # ------------------------------------------------------------------------------
@@ -287,7 +295,7 @@ _script_sysrepo = (
 )
 
 run_target('libs',
-  command: [bash, '-c', 'set -e; ' + _script_libs + _script_zlib + _script_drm + _script_ffi])
+  command: [bash, '-c', 'set -e; ' + _script_libs + _script_zlib + _script_drm + _script_ffi + _script_wl])
 
 run_target('bin',
   command: [bash, '-c', 'set -e; ' + _script_bin])
@@ -310,7 +318,7 @@ run_target('userbins',
 run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
-            _script_libs + _script_zlib + _script_drm + _script_ffi + _script_bin + _script_font + _script_xfbdev +
+            _script_libs + _script_zlib + _script_drm + _script_ffi + _script_wl + _script_bin + _script_font + _script_xfbdev +
             _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
