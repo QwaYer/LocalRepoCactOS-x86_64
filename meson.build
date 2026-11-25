@@ -300,11 +300,12 @@ _script_tar = (
   'echo "firmrepo: wrote firmrepo.tar.zst"; '
 )
 
-# sign + pack: the Makefile's $(OUT_IMG) rule.
+# sign + pack: the Makefile's $(OUT_IMG) rule.  Drivers no longer land here —
+# they ride their own Multiboot2 modules (drvrepo / netdrvrepo), so the image
+# carries no *.cctk; any that do get staged (a local experiment) are still
+# signed before packing.
 _script_pack = (
   'cctk=$(ls "' + lib_dir + '"/*.cctk 2>/dev/null || true); ' +
-  'if [ -z "$cctk" ]; then ' +
-  'echo "ERROR: no ' + lib_dir + '/*.cctk — install kernel modules first" >&2; exit 1; fi; ' +
   'for f in $cctk; do ' + python3.full_path() + ' "' + signer + '" "$f"; done; ' +
   python3.full_path() + ' "' + packer + '" "' + lib_dir + '" "' + out_img + '"; '
 )
