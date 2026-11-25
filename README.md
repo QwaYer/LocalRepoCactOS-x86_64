@@ -61,7 +61,7 @@ repository owns no sources and carries no binaries.
 | **`bin/*`** | **`/usr/bin/<name>`** | **init**, **cactsole**, **cgoct**, **cactsole-rescue**, plus all **CactUserBins** tools |
 | **`sbin/*`** | **`/usr/sbin/<name>`** | Privileged / net helpers (**kill**, **su**, **modload**, **ping**, **cact-install**, …) |
 | **`cactpkg/*`** | **`/usr/lib/cactpkg/repo/*`** | Offline **cactpkg** repository (base-system tools as `.cpkg`, versioned with the release) |
-| **`cact-install/*`** | **`/usr/lib/cact-install/*`** | Installer media — **`boot/kernel.bin`** + the **GRUB** stage files the installer deploys, staged by **`cact-install`**'s **`stage-media`** (after its **`grub-bundle`**, with the kernel already built). The **image itself is not here**: the kernel serves the boot module as **`/dev/localbinrepo`** and `cact-install` reads it there, so it can never nest an image inside itself |
+| **`cact-install/*`** | **`/usr/lib/cact-install/*`** | Installer media — **`boot/kernel.bin`**, staged by **`cact-install`**'s **`stage-media`** (with the kernel already built). Its **GRUB stage files do not ride here**: grubrepo packs them into the **`grubrepo`** boot module (**`/dev/grubrepo`**) and `cact-install` streams `grub/` out of it. The **image itself is not here** either: the kernel serves the boot module as **`/dev/localbinrepo`** and `cact-install` reads it there, so it can never nest an image inside itself |
 
 The packer sorts entries by **archive path**, then writes header + entry table + **NUL-separated** names (**8-byte** aligned) + payloads (**16-byte** aligned). See docstring in [`tools/pack_localbinrepo.py`](tools/pack_localbinrepo.py).
 
