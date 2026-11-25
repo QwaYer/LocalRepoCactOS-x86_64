@@ -77,13 +77,13 @@ packer = src_root / 'tools' / 'pack_cctkfs.py'
 signer = src_root / 'tools' / 'cact_sign.py'
 
 # The "store" is what too big and too rare to sit in the initfs image: the
-# firmware mirror, packed into localrepo.tar.zst.  The kernel serves the archive
-# in place as /dev/localrepo and firmextr streams members out of it on demand.
+# firmware mirror, packed into firmrepo.tar.zst.  The kernel serves the archive
+# in place as /dev/firmrepo and firmextr streams members out of it on demand.
 # Everything else the image needs (userland, drivers, the cactpkg repository and
 # the installer media) is packed straight into cctkfs.img.
 store_dir = src_root / 'store'
 store_lib = store_dir / 'usr' / 'lib'
-out_tar = src_root / 'localrepo.tar.zst'
+out_tar = src_root / 'firmrepo.tar.zst'
 zstd = find_program('zstd')
 
 # ------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ _script_ca = (
   'echo "staged CA bundle: $src"; break; fi; done; '
 )
 
-# Firmware.  The whole mirror goes into the store — that is what the localrepo
+# Firmware.  The whole mirror goes into the store — that is what the firmrepo
 # archive carries — copied as-is: the mirror's blobs are already compressed
 # (*.zst), so re-compressing the set buys nothing, and request_firmware() tries
 # "<name>.zst" before "<name>" anyway.  `cp -al` hard-links the tree instead of
@@ -254,7 +254,7 @@ _script_fw = (
   'rm -rf "' + store_dir + '/usr"; mkdir -p "' + store_lib + '"; ' +
   'if [ -d "' + _fw_dir + '" ]; then ' +
   'cp -al "' + _fw_dir + '" "' + store_lib + '/firmware"; ' +
-  'else echo "WARN: firmware mirror ' + _fw_dir + ' not found — localrepo carries none" >&2; fi; '
+  'else echo "WARN: firmware mirror ' + _fw_dir + ' not found — firmrepo carries none" >&2; fi; '
 )
 
 # The store holds the firmware mirror and nothing else (the step above wipes it
@@ -269,7 +269,7 @@ _script_store = (
 # only zstd's status, so a failing `tar` needs pipefail; and a pack that dies
 # half-way still leaves a file that looks like an archive, so the result is read
 # back and its member list compared with the store's.  An archive that fails
-# here would ride on the ISO as the `localrepo` module, boot fine, and only
+# here would ride on the ISO as the `firmrepo` module, boot fine, and only
 # surface later as an empty /tmp copy the drivers cannot get firmware out of.
 # The level is deliberately low: the mirror's blobs are already *.zst (and the
 # raw remainder is ucode/GPU data), so -19 would spend minutes of CPU on the
@@ -277,18 +277,18 @@ _script_store = (
 _script_tar = (
   'set -o pipefail; ' +
   'if [ ! -d "' + store_dir + '/usr" ]; then ' +
-  'echo "localrepo: store/usr is missing — run \`ninja stage\` first" >&2; exit 1; fi; ' +
+  'echo "firmrepo: store/usr is missing — run \`ninja stage\` first" >&2; exit 1; fi; ' +
   'want=$(tar --format=ustar -C "' + store_dir + '" -cf - usr | tar -tf -); ' +
   'rm -f "' + out_tar + '"; ' +
   'tar --format=ustar -C "' + store_dir + '" -cf - usr | ' +
   zstd.full_path() + ' -3 -q -o "' + out_tar + '" -; ' +
   'if ! got=$(' + zstd.full_path() + ' -dc "' + out_tar + '" | tar -tf -); then ' +
-  'echo "localrepo: the packed archive is not readable — dropping ' + out_tar + '" >&2; ' +
+  'echo "firmrepo: the packed archive is not readable — dropping ' + out_tar + '" >&2; ' +
   'rm -f "' + out_tar + '"; exit 1; fi; ' +
   'if [ "$want" != "$got" ]; then ' +
-  'echo "localrepo: the packed archive does not match the store — dropping ' + out_tar + '" >&2; ' +
+  'echo "firmrepo: the packed archive does not match the store — dropping ' + out_tar + '" >&2; ' +
   'rm -f "' + out_tar + '"; exit 1; fi; ' +
-  'echo "localrepo: wrote localrepo.tar.zst"; '
+  'echo "firmrepo: wrote firmrepo.tar.zst"; '
 )
 
 # sign + pack: the Makefile's $(OUT_IMG) rule.
@@ -331,8 +331,8 @@ run_target('userbins',
 
 # The Makefile's `all`: stage everything, then sign + pack cctkfs.img — the
 # userland, the drivers, the cactpkg repository and the installer media.  Only
-# the store (the firmware mirror) stays out of it; the `localrepo` target packs
-# that into localrepo.tar.zst.
+# the store (the firmware mirror) stays out of it; the `firmrepo` target packs
+# that into firmrepo.tar.zst.
 run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
@@ -340,9 +340,9 @@ run_target('stage',
             _script_libpkgs + _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
-# Build localrepo.tar.zst from the store.  Run after `stage` (it uses whatever
+# Build firmrepo.tar.zst from the store.  Run after `stage` (it uses whatever
 # the store holds, so it only has to re-pack when the store changed).
-run_target('localrepo',
+run_target('firmrepo',
   command: [bash, '-c', 'set -e; ' + _script_tar])
 
 # Trust anchors on their own, for when only the bundle changed.

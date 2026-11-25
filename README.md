@@ -64,12 +64,12 @@ repository owns no sources and carries no binaries.
 
 The packer sorts entries by **archive path**, then writes header + entry table + **NUL-separated** names (**8-byte** aligned) + payloads (**16-byte** aligned). See docstring in [`tools/pack_cctkfs.py`](tools/pack_cctkfs.py).
 
-### The store and `localrepo.tar.zst`
+### The store and `firmrepo.tar.zst`
 
 The store holds one thing: the **firmware mirror**. Every build wipes `store/`
 and re-populates it with `cp -al` (hard links — the mirror and the store share
 the same filesystem, so a 548 MiB tree is not duplicated), then
-**`ninja -C build-meson localrepo`** packs it into **`localrepo.tar.zst`** (a
+**`ninja -C build-meson firmrepo`** packs it into **`firmrepo.tar.zst`** (a
 ustar image of `usr/…`, one zstd stream):
 
 | Source under `store/` | Path inside the archive | Why it is not in the image |
@@ -83,7 +83,7 @@ symlinks (aliases) as symlink members, which **`firmextr` skips** — only the
 canonical files are reachable through the VFS.
 
 The archive stays on the boot medium: the kernel serves the GRUB module in
-place as **`/dev/localrepo`**, and **`firmextr`** streams members out of it
+place as **`/dev/firmrepo`**, and **`firmextr`** streams members out of it
 (`firmextr usr/lib/firmware/rt2870.bin`) without unpacking the rest — the
 ~500 MiB archive is never copied into RAM. `request_firmware()` then finds the
 extracted blob on the VFS.

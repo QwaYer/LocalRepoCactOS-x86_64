@@ -8,6 +8,7 @@ lib/
 *.cctk
 *.o
 localrepo.tar.zst
+firmrepo.tar.zst
 store/
 
 build-meson/
