@@ -176,6 +176,15 @@ _script_wl = (
   _stage_tpl.format(_wl_mk, _cactlib_opt + ' ' + _lib_opt, 'stage') +
   'fi; ')
 
+# zstd — the compression tool the shell and the installer use to read the boot
+# archives (firmrepo / netdrvrepo / drvrepo / localbinrepo are one zstd frame
+# wrapping a ustar image).  It stages into /usr/bin like the other tools.
+_cactzstd_mk = siblings / 'CactZstd-x86_64'
+_script_cactzstd = (
+  'if [ -f "' + _cactzstd_mk + '/meson.build" ]; then ' +
+  _stage_tpl.format(_cactzstd_mk, _cactlib_opt + ' ' + _bin_opt, 'stage') +
+  'fi; ')
+
 # Each library port also produces a .cpkg; collect them into the image's package
 # repository so the libraries ship as packages and not only as staged files.  The
 # repo dir is filled by CactPkg's own stage and indexed at the end by the sysrepo
@@ -337,6 +346,7 @@ run_target('stage',
   command: [bash, '-c', 'set -e; ' + _script_daemons + _script_userbins +
             _script_cactpkg + _script_cactinst +
             _script_libs + _script_zlib + _script_drm + _script_ffi + _script_wl + _script_bin + _script_font + _script_xfbdev +
+            _script_cactzstd +
             _script_libpkgs + _script_sysrepo + _script_ca + _script_fw + _script_store +
             _script_pack])
 
