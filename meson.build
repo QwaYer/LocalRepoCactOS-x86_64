@@ -145,32 +145,36 @@ endif
 # zlib and libdrm, the first of the graphics-stack library ports: each stage
 # target drops its .so into lib/ (→ /usr/lib) and its headers into lib/include
 # (→ /usr/include).
+# Presence is decided at run time (like _script_daemons), not configure time:
+# fs.exists() bakes the answer into build.ninja, so trashing or restoring one of
+# these siblings leaves the stage script stale and the build runs `meson setup`
+# against a directory that is gone.
 _zlib_mk = siblings / 'CactZlib-x86_64'
-_script_zlib = ''
-if fs.exists(_zlib_mk / 'meson.build')
-  _script_zlib = _stage_tpl.format(_zlib_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
-endif
+_script_zlib = (
+  'if [ -f "' + _zlib_mk + '/meson.build" ]; then ' +
+  _stage_tpl.format(_zlib_mk, _cactlib_opt + ' ' + _lib_opt, 'stage') +
+  'fi; ')
 
 _drm_mk = siblings / 'CactDrm-x86_64'
-_script_drm = ''
-if fs.exists(_drm_mk / 'meson.build')
-  _script_drm = _stage_tpl.format(_drm_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
-endif
+_script_drm = (
+  'if [ -f "' + _drm_mk + '/meson.build" ]; then ' +
+  _stage_tpl.format(_drm_mk, _cactlib_opt + ' ' + _lib_opt, 'stage') +
+  'fi; ')
 
 # libffi — what Wayland's connection.c calls to invoke event closures.
 _ffi_mk = siblings / 'CactFFI-x86_64'
-_script_ffi = ''
-if fs.exists(_ffi_mk / 'meson.build')
-  _script_ffi = _stage_tpl.format(_ffi_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
-endif
+_script_ffi = (
+  'if [ -f "' + _ffi_mk + '/meson.build" ]; then ' +
+  _stage_tpl.format(_ffi_mk, _cactlib_opt + ' ' + _lib_opt, 'stage') +
+  'fi; ')
 
 # Wayland protocol libraries.  Built after libffi: their build reads the ffi
 # headers and libffi.so that CactFFI's stage left in lib/ and lib/include.
 _wl_mk = siblings / 'CactWayland-x86_64'
-_script_wl = ''
-if fs.exists(_wl_mk / 'meson.build')
-  _script_wl = _stage_tpl.format(_wl_mk, _cactlib_opt + ' ' + _lib_opt, 'stage')
-endif
+_script_wl = (
+  'if [ -f "' + _wl_mk + '/meson.build" ]; then ' +
+  _stage_tpl.format(_wl_mk, _cactlib_opt + ' ' + _lib_opt, 'stage') +
+  'fi; ')
 
 # Each library port also produces a .cpkg; collect them into the image's package
 # repository so the libraries ship as packages and not only as staged files.  The
