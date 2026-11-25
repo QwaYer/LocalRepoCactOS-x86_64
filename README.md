@@ -21,7 +21,7 @@
 
 | | |
 |---|---|
-| **Output image** | **`localbinrepo.img`** — flat archive, magic **`CKFS`** / version **1** ([`tools/localbinrepo.h`](tools/localbinrepo.h)) |
+| **Output image** | **`localbinrepo.img`** — flat archive, magic **`LBRP`** / version **1** ([`tools/localbinrepo.h`](tools/localbinrepo.h)) |
 | **Packer** | **`tools/pack_localbinrepo.py`** — `python3 tools/pack_localbinrepo.py [-v] lib/ localbinrepo.img`; a live progress bar on a terminal, a line per 10% when the output is captured, and the full file table with **`-v`** ([`meson.build`](meson.build)) |
 | **Driver slot** | **`lib/*.cctk`** — at least **one** required or the **`stage`** target fails with an explicit error; packed as **`/usr/lib/modules/<name>.cctk`** |
 | **Userspace staging** | **`lib/bin/*`** → archive **`/usr/bin/*`** · **`lib/sbin/*`** → **`/usr/sbin/*`** (from **CactUserBins** **`stage`**) |

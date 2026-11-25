@@ -15,7 +15,7 @@
 
 #include <stdint.h>
 
-#define LOCALBINREPO_MAGIC    0x53464B43u   /* 'C','K','F','S' little-endian */
+#define LOCALBINREPO_MAGIC    0x5052424Cu   /* 'L','B','R','P' little-endian */
 #define LOCALBINREPO_VERSION  1u
 
 typedef struct {

@@ -34,7 +34,7 @@ import sys
 import time
 from pathlib import Path
 
-MAGIC   = 0x53464B43          # 'CKFS' little endian
+MAGIC   = 0x5052424C          # 'LBRP' little endian
 VERSION = 1
 HDR_FMT = "<IIIIIIII"         # 32 bytes
 ENT_FMT = "<IIIIII"           # 24 bytes
