@@ -78,7 +78,7 @@ signer = src_root / 'tools' / 'cact_sign.py'
 
 # The "store" is what too big and too rare to sit in the initfs image: the
 # firmware mirror, packed into firmrepo.tar.zst.  The kernel serves the archive
-# in place as /dev/firmrepo and firmextr streams members out of it on demand.
+# in place as /dev/firmrepo and zstd (+tar) streams members out of it on demand.
 # Everything else the image needs (userland, drivers, the cactpkg repository and
 # the installer media) is packed straight into localbinrepo.img.
 store_dir = src_root / 'store'
@@ -255,7 +255,7 @@ _script_ca = (
 # archive carries — copied as-is: the mirror's blobs are already compressed
 # (*.zst), so re-compressing the set buys nothing, and request_firmware() tries
 # "<name>.zst" before "<name>" anyway.  `cp -al` hard-links the tree instead of
-# duplicating 500+ MiB on the same filesystem; firmextr streams a single member
+# duplicating 500+ MiB on the same filesystem; zstd+tar streams a single member
 # out on demand and the kernel then sees it under /usr/lib/firmware via the VFS.
 _fw_dir = siblings / 'Firmware-for-Cact-x86' / 'lib' / 'firmware'
 
@@ -274,7 +274,7 @@ _script_store = (
 )
 
 # Pack the store — the firmware mirror — into the archive the boot flow streams
-# from (ustar so firmextr's reader can parse it).  The bash pipeline reports
+# from (ustar, the shape tar and the kernel's request_firmware() reader parse).  The bash pipeline reports
 # only zstd's status, so a failing `tar` needs pipefail; and a pack that dies
 # half-way still leaves a file that looks like an archive, so the result is read
 # back and its member list compared with the store's.  An archive that fails

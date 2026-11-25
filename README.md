@@ -79,14 +79,14 @@ ustar image of `usr/…`, one zstd stream):
 Blobs are copied **as-is** — the mirror ships `*.zst` (and `request_firmware()`
 tries **`<name>.zst`** before **`<name>`**), so re-compressing buys nothing; the
 archive's zstd level is low for the same reason. `tar` stores the mirror's
-symlinks (aliases) as symlink members, which **`firmextr` skips** — only the
-canonical files are reachable through the VFS.
+symlinks (aliases) as symlink members; `zstd -dc firmrepo.tar.zst | tar -xf -`
+recreates them, so the aliases are reachable too.
 
 The archive stays on the boot medium: the kernel serves the GRUB module in
-place as **`/dev/firmrepo`**, and **`firmextr`** streams members out of it
-(`firmextr usr/lib/firmware/rt2870.bin`) without unpacking the rest — the
-~500 MiB archive is never copied into RAM. `request_firmware()` then finds the
-extracted blob on the VFS.
+place as **`/dev/firmrepo`**, and **`zstd`** + **`tar`** stream members out of it
+(`zstd -dc /dev/firmrepo | tar -x - usr/lib/firmware/rt2870.bin`) without
+unpacking the rest — the ~500 MiB archive is never copied into RAM.
+`request_firmware()` then finds the extracted blob on the VFS.
 
 ---
 
