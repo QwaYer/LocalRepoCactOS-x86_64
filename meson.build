@@ -129,17 +129,18 @@ if fs.exists(cactpkg_mk / 'meson.build')
 endif
 
 # cact-install stages twice over: `stage` drops the installer binary into
-# lib/sbin, and `stage-media` (which needs `grub-bundle` first, and the kernel
-# already built) drops the media the installer deploys into lib/cact-install —
-# boot/kernel.bin plus the GRUB stage files.  Both land in localbinrepo.img, so the
-# media has to be staged before the pack step below.  The whole-workspace build
-# (CactOS-x86_64) runs the same three targets; running them again from here is
-# what makes this repository build a complete image on its own.
+# lib/sbin, and `stage-media` (with the kernel already built) drops the media
+# the installer deploys into lib/cact-install — just boot/kernel.bin now (the
+# GRUB stage files ride the `grubrepo` boot module, not the image).  Both land
+# in localbinrepo.img, so the media has to be staged before the pack step below.
+# The whole-workspace build (CactOS-x86_64) runs the same two targets; running
+# them again from here is what makes this repository build a complete image on
+# its own.
 _script_cactinst = ''
 if fs.exists(cactinst_mk / 'meson.build')
   _script_cactinst = _stage_tpl.format(
     cactinst_mk, _cactlib_opt + ' ' + _sbin_opt + ' ' + _lib_opt,
-    'stage grub-bundle stage-media')
+    'stage stage-media')
 endif
 
 # zlib and libdrm, the first of the graphics-stack library ports: each stage
