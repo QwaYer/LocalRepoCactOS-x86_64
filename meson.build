@@ -13,7 +13,7 @@
 #
 # This repo owns no sources of its own: it drives the sibling repositories
 # (Meson "stage" targets), stages their output into lib/, signs the kernel
-# modules and packs cctkfs.img.  The project declares no languages, so no cross
+# modules and packs localbinrepo.img.  The project declares no languages, so no cross
 # file is needed here.
 #
 # The pipeline is deliberately a run_target: the integrators wipe lib/bin and
@@ -72,15 +72,15 @@ font_gen = siblings / 'CactKernel-x86_64' / 'tools' / 'gen_consolefont.py'
 libc_so_src = cactlib_dir / 'build-meson' / 'clibc.so'
 ld_so_src = cactlib_dir / 'build-meson' / 'ld.so'
 
-out_img = src_root / 'cctkfs.img'
-packer = src_root / 'tools' / 'pack_cctkfs.py'
+out_img = src_root / 'localbinrepo.img'
+packer = src_root / 'tools' / 'pack_localbinrepo.py'
 signer = src_root / 'tools' / 'cact_sign.py'
 
 # The "store" is what too big and too rare to sit in the initfs image: the
 # firmware mirror, packed into firmrepo.tar.zst.  The kernel serves the archive
 # in place as /dev/firmrepo and firmextr streams members out of it on demand.
 # Everything else the image needs (userland, drivers, the cactpkg repository and
-# the installer media) is packed straight into cctkfs.img.
+# the installer media) is packed straight into localbinrepo.img.
 store_dir = src_root / 'store'
 store_lib = store_dir / 'usr' / 'lib'
 out_tar = src_root / 'firmrepo.tar.zst'
@@ -131,7 +131,7 @@ endif
 # cact-install stages twice over: `stage` drops the installer binary into
 # lib/sbin, and `stage-media` (which needs `grub-bundle` first, and the kernel
 # already built) drops the media the installer deploys into lib/cact-install —
-# boot/kernel.bin plus the GRUB stage files.  Both land in cctkfs.img, so the
+# boot/kernel.bin plus the GRUB stage files.  Both land in localbinrepo.img, so the
 # media has to be staged before the pack step below.  The whole-workspace build
 # (CactOS-x86_64) runs the same three targets; running them again from here is
 # what makes this repository build a complete image on its own.
@@ -202,7 +202,7 @@ _script_libs = (
 )
 
 # font: the PSF2 console font the kernel loads from /usr/share/consolefont.psf
-# at boot (pack_cctkfs.py maps lib/consolefont.psf there).  It is generated
+# at boot (pack_localbinrepo.py maps lib/consolefont.psf there).  It is generated
 # rather than vendored so that no binary has to live in this repository; the
 # generator is deterministic and emits a byte-identical file to the copy
 # CactKernel carries.
@@ -258,7 +258,7 @@ _script_fw = (
 )
 
 # The store holds the firmware mirror and nothing else (the step above wipes it
-# and re-populates it), and firmware must never be packed into cctkfs.img — so
+# and re-populates it), and firmware must never be packed into localbinrepo.img — so
 # a copy under lib/, from an older build or a stray hand copy, is dropped here.
 _script_store = (
   'rm -rf "' + lib_dir + '/firmware"; '
@@ -329,7 +329,7 @@ run_target('userbins',
             _script_userbins + _script_cactpkg + _script_cactinst +
             _script_font + _script_fw + _script_store])
 
-# The Makefile's `all`: stage everything, then sign + pack cctkfs.img — the
+# The Makefile's `all`: stage everything, then sign + pack localbinrepo.img — the
 # userland, the drivers, the cactpkg repository and the installer media.  Only
 # the store (the firmware mirror) stays out of it; the `firmrepo` target packs
 # that into firmrepo.tar.zst.

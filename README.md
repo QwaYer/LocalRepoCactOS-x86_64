@@ -2,15 +2,15 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/license-GPLv3-blue.svg?style=for-the-badge" alt="License: GPLv3">
-  <img src="https://img.shields.io/badge/output-cctkfs.img-green.svg?style=for-the-badge" alt="cctkfs.img">
+  <img src="https://img.shields.io/badge/output-localbinrepo.img-green.svg?style=for-the-badge" alt="localbinrepo.img">
   <img src="https://img.shields.io/badge/packer-Python%203-yellow.svg?style=for-the-badge" alt="Python 3">
   <img src="https://img.shields.io/badge/boot-Multiboot2%20module-purple.svg?style=for-the-badge" alt="Multiboot2 module">
-  <img src="https://img.shields.io/badge/format-cctkfs%20v1-orange.svg?style=for-the-badge" alt="cctkfs v1">
+  <img src="https://img.shields.io/badge/format-localbinrepo%20v1-orange.svg?style=for-the-badge" alt="localbinrepo v1">
   <img src="https://img.shields.io/badge/signature-ECDSA%20P--256-red.svg?style=for-the-badge" alt="ECDSA P-256">
 </p>
 
 <p align="center">
-  Staging tree for <strong>out-of-tree PCI drivers</strong> (<strong><code>*.cctk</code></strong>) and <strong>early userspace</strong> ELFs, packed into one <strong><code>cctkfs.img</code></strong> archive.<br>
+  Staging tree for <strong>out-of-tree PCI drivers</strong> (<strong><code>*.cctk</code></strong>) and <strong>early userspace</strong> ELFs, packed into one <strong><code>localbinrepo.img</code></strong> archive.<br>
   GRUB loads it as a <strong>Multiboot2</strong> <strong><code>module2</code></strong>; the <strong>Cact</strong> kernel copies it into RAM <strong>before paging</strong> and overlays <strong><code>/lib</code></strong>, <strong><code>/bin</code></strong>, and <strong><code>/sbin</code></strong> on top of disk-backed VFS.<br>
   <strong>3.0.0:</strong> all `.cctk` modules are signed with an <strong>ECDSA P-256</strong> key pair. Each module carries a fixed trailer — magic `CMOD`, a 4-byte LE vermagic, then a 64-byte r‖s signature over `ELF || magic || vermagic`; the kernel verifies it with the embedded public key before loading (`mod_tag_verify()` in `Cact/kernel/elf/mod_tag.c`, Rust crate `cact_crypto`). The build host signs with `tools/modsign.py` via `tools/cact_sign.py`.
 </p>
@@ -21,8 +21,8 @@
 
 | | |
 |---|---|
-| **Output image** | **`cctkfs.img`** — flat archive, magic **`CKFS`** / version **1** ([`tools/cctkfs.h`](tools/cctkfs.h)) |
-| **Packer** | **`tools/pack_cctkfs.py`** — `python3 tools/pack_cctkfs.py [-v] lib/ cctkfs.img`; a live progress bar on a terminal, a line per 10% when the output is captured, and the full file table with **`-v`** ([`meson.build`](meson.build)) |
+| **Output image** | **`localbinrepo.img`** — flat archive, magic **`CKFS`** / version **1** ([`tools/localbinrepo.h`](tools/localbinrepo.h)) |
+| **Packer** | **`tools/pack_localbinrepo.py`** — `python3 tools/pack_localbinrepo.py [-v] lib/ localbinrepo.img`; a live progress bar on a terminal, a line per 10% when the output is captured, and the full file table with **`-v`** ([`meson.build`](meson.build)) |
 | **Driver slot** | **`lib/*.cctk`** — at least **one** required or the **`stage`** target fails with an explicit error; packed as **`/usr/lib/modules/<name>.cctk`** |
 | **Userspace staging** | **`lib/bin/*`** → archive **`/usr/bin/*`** · **`lib/sbin/*`** → **`/usr/sbin/*`** (from **CactUserBins** **`stage`**) |
 | **Dynamic libc** | **`lib/clibc.so`** — copied from **`<cactlib_dir>/build-meson/clibc.so`** (the **`cactlib_dir`** option, set by the integrator) |
@@ -35,7 +35,7 @@
 
 | Piece | Role |
 |-------|------|
-| **[CactKernel-x86_64](https://github.com/QwaYer/CactKernel-x86_64)** | Parses the **`cctkfs`** module, stages **`cctkfs_stage[]`**, serves **GDD** / **pci_load_module**, **binfs** / **sbinfs** / **libfs** / **usrfs** overlays |
+| **[CactKernel-x86_64](https://github.com/QwaYer/CactKernel-x86_64)** | Parses the **`localbinrepo`** module, stages **`localbinrepo_stage[]`**, serves **GDD** / **pci_load_module**, **binfs** / **sbinfs** / **libfs** / **usrfs** overlays |
 | **`*-for-Cact` driver repos** | Each **`ninja -C build-meson stage`** drops **`*.cctk`** into **`lib/`** here |
 | **[CactLib-x86_64](https://github.com/QwaYer/CactLibc-x86_64)** | Builds **`clibc.so`** consumed by staged ELFs |
 | **[Cgoct-x86_64](https://github.com/QwaYer/Cgoct-x86_64)** | **`/usr/bin/init`** — userspace supervisor |
@@ -45,7 +45,7 @@
 
 ---
 
-## 📦 What goes into `cctkfs.img`
+## 📦 What goes into `localbinrepo.img`
 
 `lib/` is **staging only**: **`ninja stage`** fills it from the sibling trees and
 nothing under it is ever committed (see [`.gitignore`](.gitignore)) — this
@@ -60,9 +60,9 @@ repository owns no sources and carries no binaries.
 | **`bin/*`** | **`/usr/bin/<name>`** | **init**, **cactsole**, **cgoct**, **cactsole-rescue**, plus all **CactUserBins** tools |
 | **`sbin/*`** | **`/usr/sbin/<name>`** | Privileged / net helpers (**kill**, **su**, **modload**, **ping**, **cact-install**, …) |
 | **`cactpkg/*`** | **`/usr/lib/cactpkg/repo/*`** | Offline **cactpkg** repository (base-system tools as `.cpkg`, versioned with the release) |
-| **`cact-install/*`** | **`/usr/lib/cact-install/*`** | Installer media — **`boot/kernel.bin`** + the **GRUB** stage files the installer deploys, staged by **`cact-install`**'s **`stage-media`** (after its **`grub-bundle`**, with the kernel already built). The **image itself is not here**: the kernel serves the boot module as **`/dev/cctkfs`** and `cact-install` reads it there, so it can never nest an image inside itself |
+| **`cact-install/*`** | **`/usr/lib/cact-install/*`** | Installer media — **`boot/kernel.bin`** + the **GRUB** stage files the installer deploys, staged by **`cact-install`**'s **`stage-media`** (after its **`grub-bundle`**, with the kernel already built). The **image itself is not here**: the kernel serves the boot module as **`/dev/localbinrepo`** and `cact-install` reads it there, so it can never nest an image inside itself |
 
-The packer sorts entries by **archive path**, then writes header + entry table + **NUL-separated** names (**8-byte** aligned) + payloads (**16-byte** aligned). See docstring in [`tools/pack_cctkfs.py`](tools/pack_cctkfs.py).
+The packer sorts entries by **archive path**, then writes header + entry table + **NUL-separated** names (**8-byte** aligned) + payloads (**16-byte** aligned). See docstring in [`tools/pack_localbinrepo.py`](tools/pack_localbinrepo.py).
 
 ### The store and `firmrepo.tar.zst`
 
@@ -94,7 +94,7 @@ extracted blob on the VFS.
 
 **Recommended — full workspace**
 
-From the **parent** of all sibling trees, run **`ninja -C CactOS-x86_64/build-meson stage`** (or **`… iso`**) — **[CactOS-x86_64](https://github.com/QwaYer/CactOS-x86_64)** configures this project with **`-Dcactlib_dir`**, **`-Dcactsole_bin`**, **`-Dcgoct_bin`**, **`-Duserbins_mk`**, **`-Dcactsoleinc`** and runs its **`stage`** target, which repacks **`cctkfs.img`**.
+From the **parent** of all sibling trees, run **`ninja -C CactOS-x86_64/build-meson stage`** (or **`… iso`**) — **[CactOS-x86_64](https://github.com/QwaYer/CactOS-x86_64)** configures this project with **`-Dcactlib_dir`**, **`-Dcactsole_bin`**, **`-Dcgoct_bin`**, **`-Duserbins_mk`**, **`-Dcactsoleinc`** and runs its **`stage`** target, which repacks **`localbinrepo.img`**.
 
 **Standalone — this repository only**
 
@@ -102,7 +102,7 @@ Sibling directories are auto-detected from their default relative paths:
 
 ```sh
 meson setup build-meson
-ninja -C build-meson stage   # gather siblings + pack cctkfs.img
+ninja -C build-meson stage   # gather siblings + pack localbinrepo.img
 ninja -C build-meson ca      # re-stage just the CA bundle
 ninja -C build-meson purge   # clean
 ```
@@ -121,7 +121,7 @@ Override any path with a Meson option (see table below).
 
 | Requirement | Notes |
 |-------------|-------|
-| **`python3`** | Runs **`pack_cctkfs.py`** |
+| **`python3`** | Runs **`pack_localbinrepo.py`** |
 | **`lib/*.cctk`** | **Mandatory** — install drivers first (see below) |
 
 **Driver install** (each driver's own **`stage`** target copies into **`lib/`**):
@@ -149,8 +149,8 @@ LocalRepoCactOS/
 ├── meson.build           # sibling paths arrive as -D options; stage/ca/purge targets
 ├── LICENSE
 ├── tools/
-│   ├── cctkfs.h          # on-disk layout (shared idea with kernel reader)
-│   ├── pack_cctkfs.py    # packs lib/ → cctkfs.img (progress bar / -v)
+│   ├── localbinrepo.h          # on-disk layout (shared idea with kernel reader)
+│   ├── pack_localbinrepo.py    # packs lib/ → localbinrepo.img (progress bar / -v)
 │   └── cact_sign.py      # appends the ECDSA P-256 trailer to a .cctk
 ├── lib/                  # populated by the drivers' stage targets + -D options
 │   ├── *.cctk
@@ -159,7 +159,7 @@ LocalRepoCactOS/
 │   ├── bin/
 │   └── sbin/
 ├── src/                  # optional mirrors of driver sources
-└── cctkfs.img            # generated (gitignored in practice)
+└── localbinrepo.img            # generated (gitignored in practice)
 ```
 
 ---
@@ -169,12 +169,12 @@ LocalRepoCactOS/
 1. **GRUB** reads **`grub.cfg`**:
    ```
    multiboot2 /boot/kernel.bin
-   module2   /boot/cctkfs.img cctkfs
+   module2   /boot/localbinrepo.img localbinrepo
    ```
-2. Early **`init()`** (paging still off): **Multiboot2** parsing records the first module whose cmdline begins with **`cctkfs`**.
-3. **`pci_modblob_load(phys, size)`** copies the module into a static **`cctkfs_stage[]`** **`.bss`** buffer **before** **`pmm_init_from_mmap()`** / **`init_heap()`** so the heap cannot overwrite bootloader pages.
+2. Early **`init()`** (paging still off): **Multiboot2** parsing records the first module whose cmdline begins with **`localbinrepo`**.
+3. **`pci_modblob_load(phys, size)`** copies the module into a static **`localbinrepo_stage[]`** **`.bss`** buffer **before** **`pmm_init_from_mmap()`** / **`init_heap()`** so the heap cannot overwrite bootloader pages.
 4. **`pci_enumerate()`** drives **GDD** prompts for recognised devices.
-5. On confirm, **`pci_load_module("/usr/lib/modules/<name>.cctk", drv)`** resolves the path inside **`cctkfs_stage`**, copies the **ET_REL** image, applies relocations, calls **`pci_driver_probe(dev)`**.
+5. On confirm, **`pci_load_module("/usr/lib/modules/<name>.cctk", drv)`** resolves the path inside **`localbinrepo_stage`**, copies the **ET_REL** image, applies relocations, calls **`pci_driver_probe(dev)`**.
 6. Userspace **`/usr/bin/init`** (**cgoct**) expects **`/usr/bin/cactsole`** (and optionally **`cactsole-rescue`**) on the overlay **`PATH`** (**`/usr/bin:/usr/sbin`**).
 
 ---

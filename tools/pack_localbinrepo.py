@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Pack LocalRepoCactOS/lib into a flat cctkfs image consumed by the Cact
+"""Pack LocalRepoCactOS/lib into a flat localbinrepo image consumed by the Cact
 kernel.
 
 Directory layout (lib_dir → archive path, usrmerge + FHS):
@@ -19,9 +19,9 @@ At runtime /usr is merged into the classic top level: /usr/bin, /usr/sbin and
 /usr/lib are served by binfs/sbinfs/libfs and the bare /bin, /sbin, /lib are
 symlinks to them (see mntfs_init in the kernel).
 
-Layout matches tools/cctkfs.h (little-endian, contiguous):
-  cctkfs_hdr (32 B)
-  cctkfs_entry[count] (24 B each)
+Layout matches tools/localbinrepo.h (little-endian, contiguous):
+  localbinrepo_hdr (32 B)
+  localbinrepo_entry[count] (24 B each)
   name blob (NUL-separated, 8-byte aligned)
   data blobs (each 16-byte aligned)
 
@@ -75,7 +75,7 @@ KERNEL_MODULE_DIR = "/usr/lib/modules"
 
 
 def archive_path(lib_dir: Path, path: Path) -> str:
-    """Map a file under lib_dir to its archive path in cctkfs."""
+    """Map a file under lib_dir to its archive path in localbinrepo."""
     parts = path.relative_to(lib_dir).parts
 
     if parts[0] in DIR_MAP:
@@ -149,7 +149,7 @@ def main(argv):
     verbose = any(a in ("-v", "--verbose") for a in argv[1:])
 
     if len(args) != 2:
-        print("usage: pack_cctkfs.py [-v] <lib_dir> <out_image>", file=sys.stderr)
+        print("usage: pack_localbinrepo.py [-v] <lib_dir> <out_image>", file=sys.stderr)
         return 2
 
     lib_dir = Path(args[0])
@@ -162,10 +162,10 @@ def main(argv):
     staged.sort(key=lambda t: t[0])
 
     if not staged:
-        print(f"cctkfs: error: no files found in {lib_dir}", file=sys.stderr)
+        print(f"localbinrepo: error: no files found in {lib_dir}", file=sys.stderr)
         return 1
 
-    print(f"cctkfs: packing {len(staged)} files from {lib_dir}")
+    print(f"localbinrepo: packing {len(staged)} files from {lib_dir}")
 
     # Sizes first: the entry table needs every offset before any data is placed.
     entries = []
@@ -220,11 +220,11 @@ def main(argv):
         groups[group_of(e["arcname"])] = groups.get(group_of(e["arcname"]), 0) + 1
     breakdown = " · ".join(f"{k} {v}" for k, v in sorted(groups.items()))
 
-    print(f"cctkfs: wrote {out_path.name} — {fmt_size(cur)} · "
+    print(f"localbinrepo: wrote {out_path.name} — {fmt_size(cur)} · "
           f"{len(entries)} entries ({breakdown}) · {prog.elapsed():.2f}s")
 
     if verbose:
-        print(f"cctkfs: image layout ({out_path})")
+        print(f"localbinrepo: image layout ({out_path})")
         for e in entries:
             print(f"  {e['arcname']:48s} @ {e['data_off']:#08x}  {e['size']} B")
     return 0
